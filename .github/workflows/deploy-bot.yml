@@ -1,0 +1,82 @@
+name: Deploy Telegram Bot
+
+on:
+  push:
+    branches: [ main, master ]
+    paths: 
+      - 'telegram_bot.py'
+      - 'run_bot.py'
+      - 'requirements.txt'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Test Bot Configuration
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: |
+          python -c "
+          import os
+          from telegram_bot import VPNBot
+          
+          token = os.getenv('TELEGRAM_BOT_TOKEN')
+          if not token:
+              print('❌ TELEGRAM_BOT_TOKEN не найден')
+              exit(1)
+          
+          print('✅ Токен найден, тестирование конфигурации бота...')
+          try:
+              bot = VPNBot(token)
+              print('✅ Бот успешно инициализирован')
+              print('📋 Доступные команды:')
+              print('  /start - Приветствие')
+              print('  /help - Помощь')
+              print('  /ru - Ключи для России')
+              print('  /all - Все ключи')
+              print('  /vless - Топ-50 VLESS ключей России')
+              print('  /fast - Самый быстрый VLESS ключ России')
+              print('  /random - 5 случайных VLESS ключей России')
+              print('  /status - Статус ключей')
+              print('✅ Конфигурация бота в порядке!')
+          except Exception as e:
+              print(f'❌ Ошибка инициализации бота: {e}')
+              exit(1)
+          "
+
+      - name: Deploy Instructions
+        run: |
+          echo "🚀 Telegram Bot готов к развертыванию!"
+          echo ""
+          echo "📋 Для запуска бота на сервере:"
+          echo "1. Скопируйте файлы на сервер"
+          echo "2. Установите TELEGRAM_BOT_TOKEN в Secrets GitHub"
+          echo "3. Запустите: python3 run_bot.py"
+          echo ""
+          echo "🔧 Secrets для GitHub:"
+          echo "- TELEGRAM_BOT_TOKEN: Токен от @BotFather"
+          echo ""
+          echo "📱 Команды для установки в @BotFather:"
+          echo "start - 🎉 Запустить бота"
+          echo "help - 📖 Показать помощь"
+          echo "ru - 🇷🇺 Получить ключи для России"
+          echo "all - 🌍 Получить все ключи"
+          echo "vless - ⚡ Топ-50 VLESS ключей России"
+          echo "fast - 🚀 Самый быстрый VLESS ключ России"
+          echo "random - 🎲 5 случайных VLESS ключей России"
+          echo "status - 📊 Статус ключей"

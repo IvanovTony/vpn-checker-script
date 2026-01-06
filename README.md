@@ -84,6 +84,52 @@ text
 
 ---
 
+## 🤖 Telegram Bot
+
+Теперь проект включает готовый Telegram бот для удобного доступа к ключам!
+
+### 📱 Команды бота
+- `/start` - Приветствие
+- `/help` - Помощь
+- `/ru` - Ключи для России
+- `/all` - Все ключи
+- `/vless` - Топ-50 VLESS ключей России
+- `/fast` - Самый быстрый VLESS ключ России
+- `/random` - 5 случайных VLESS ключей России
+- `/status` - Статус ключей
+
+### 🚀 Быстрый запуск бота
+
+1. **Получите токен** у [@BotFather](https://t.me/BotFather):
+   - `/newbot`
+   - Имя: `VPN Checker Script`
+   - Юзернейм: `vpn_checker_script_bot`
+
+2. **Разверните на сервере:**
+   ```bash
+   # Клонируйте репозиторий
+   git clone https://github.com/IvanovTony/vpn-checker-script.git
+   cd vpn-checker-script
+   
+   # Запустите через Docker (рекомендуется)
+   docker-compose up -d
+   
+   # Или напрямую
+   pip3 install -r requirements.txt
+   python3 run_bot.py
+   ```
+
+3. **Установите команды** в @BotFather:
+   ```
+   /setcommands
+   ```
+   И выберите вашего бота, затем вставьте команды из файла `README_DEPLOYMENT.md`
+
+   📖 **Подробная инструкция по развертыванию**: [README_DEPLOYMENT.md](README_DEPLOYMENT.md)
+   🔐 **Настройка секретов и токенов**: [SETUP_SECRETS.md](SETUP_SECRETS.md)
+
+---
+
 ## ⚙️ Технические настройки (Опции скрипта)
 
 Описание переменных в начале файла `main.py` для тех, кто хочет изменить логику:
@@ -97,4 +143,3 @@ text
 *   **BAD_MARKERS:** Стоп-слова (CN, IR, RELAY), при наличии которых ключ удаляется сразу.
 
 ---
-
