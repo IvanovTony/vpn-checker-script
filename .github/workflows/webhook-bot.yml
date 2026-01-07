@@ -1,0 +1,93 @@
+name: Webhook Bot Runner
+
+on:
+  repository_dispatch:
+    types: [run_bot_command]
+  workflow_dispatch:  # Для ручного запуска
+  schedule:
+    - cron: '*/15 * * * *'  # Проверка каждые 15 минут
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10  # Максимум 10 минут на выполнение
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ensure Data Files
+        run: |
+          mkdir -p checked/RU_Best
+          mkdir -p checked/My_Euro
+          
+          # Проверяем наличие файлов с ключами
+          if [ ! -f "checked/RU_Best/ru_white_part1.txt" ]; then
+            echo "⚠️ Keys not found, running checker..."
+            python main.py
+          fi
+
+      - name: Run Bot with Webhook
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          echo "🚀 Starting bot with webhook support..."
+          echo "⏰ Timeout: 10 minutes"
+          echo "📝 Command: ${{ github.event.client_payload.command || 'auto_check' }}"
+          
+          # Запускаем бота с поддержкой webhook
+          python3 webhook_bot.py
+
+      - name: Send Status Update
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: |
+          echo "📊 Sending status update..."
+          
+          if [ "${{ job.status }}" == "success" ]; then
+            MESSAGE="✅ Бот успешно завершил работу! 🤖"
+          else
+            MESSAGE="❌ Произошла ошибка при работе бота ⚠️"
+          fi
+          
+          python3 -c "
+          import requests
+          import os
+          
+          token = os.getenv('TELEGRAM_BOT_TOKEN')
+          chat_id = os.getenv('CHAT_ID')
+          message = os.getenv('MESSAGE')
+          
+          if token and chat_id:
+              url = f'https://api.telegram.org/bot{token}/sendMessage'
+              data = {
+                  'chat_id': chat_id,
+                  'text': message,
+                  'parse_mode': 'Markdown'
+              }
+              requests.post(url, json=data)
+          "
