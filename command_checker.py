@@ -8,7 +8,7 @@ import os
 import requests
 import time
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -122,6 +122,11 @@ class TelegramCommandChecker:
             if commands_found:
                 logger.info(f"📝 Найдены команды: {[c['command'] for c in commands_found]}")
                 
+                # Проверяем что бот не запущен
+                if self.is_bot_already_running():
+                    logger.info("🤖 Бот уже работает, пропускаем запуск")
+                    return False
+                
                 # Отправляем webhook для запуска бота
                 return self.trigger_webhook(f"commands_detected: {[c['command'] for c in commands_found]}")
             
@@ -130,6 +135,36 @@ class TelegramCommandChecker:
             
         except Exception as e:
             logger.error(f"❌ Ошибка проверки команд: {e}")
+            return False
+    
+    def is_bot_already_running(self):
+        """Проверяет запущен ли уже бот"""
+        try:
+            url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/actions/runs"
+            headers = {
+                "Authorization": f"token {self.github_token}",
+                "Accept": "application/vnd.github.v3+json"
+            }
+            
+            response = requests.get(url, headers=headers, params={"status": "in_progress"}, timeout=10)
+            
+            if response.status_code == 200:
+                runs = response.json().get('workflow_runs', [])
+                bot_runs = [run for run in runs if 'Webhook Bot Runner' in run.get('name', '')]
+                
+                if bot_runs:
+                    # Проверяем время запуска (не старше 5 минут)
+                    for run in bot_runs:
+                        created_at = run.get('created_at', '')
+                        if created_at:
+                            run_time = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                            if (datetime.now(timezone.utc) - run_time).total_seconds() < 300:
+                                return True
+            
+            return False
+            
+        except Exception as e:
+            logger.error(f"Ошибка проверки запущенных ботов: {e}")
             return False
     
     def run_checker(self, check_interval=60):
@@ -157,9 +192,9 @@ class TelegramCommandChecker:
                     
                     if self.check_for_commands():
                         consecutive_empty_checks = 0
-                        # Ждем 15 минут после запуска бота
-                        logger.info("⏳ Бот запущен, ждем 15 минут...")
-                        time.sleep(900)  # 15 минут
+                        # Ждем 5 минут после запуска бота
+                        logger.info("⏳ Бот запущен, ждем 5 минут...")
+                        time.sleep(300)  # 5 минут
                     else:
                         consecutive_empty_checks += 1
                         if consecutive_empty_checks > 0:

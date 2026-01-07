@@ -98,46 +98,20 @@ class WebhookBot(VPNBot):
             logger.error(f"Error handling update: {e}")
     
     def run_with_timeout(self):
-        """Run bot with timeout"""
+        """Run bot with timeout and continuous operation"""
         logger.info(f"Starting webhook bot (max runtime: {self.max_runtime}s)")
         
-        # Create a simple polling loop
-        application = self.application
-        
-        async def poll_updates():
-            """Poll for updates with timeout"""
-            offset = None
-            while True:
-                try:
-                    # Check timeout
-                    elapsed = time.time() - self.start_time
-                    if elapsed >= self.max_runtime or self.should_stop:
-                        logger.info("Timeout reached, stopping bot")
-                        break
-                    
-                    # Get updates
-                    updates = await application.bot.get_updates(
-                        offset=offset,
-                        timeout=5,  # Short timeout
-                        limit=10
-                    )
-                    
-                    for update in updates:
-                        await self.handle_update(update, None)
-                        offset = update.update_id + 1
-                        
-                    # Small delay
-                    await asyncio.sleep(1)
-                    
-                except Exception as e:
-                    logger.error(f"Polling error: {e}")
-                    await asyncio.sleep(2)
-        
-        # Run the polling
-        application.run_polling(
-            drop_pending_updates=True,
-            close_loop=False
-        )
+        try:
+            # Run the polling with timeout
+            self.application.run_polling(
+                drop_pending_updates=True,
+                timeout=self.max_runtime,
+                close_loop=True
+            )
+        except Exception as e:
+            logger.error(f"Bot error: {e}")
+        finally:
+            logger.info(f"Bot stopped after {time.time() - self.start_time:.1f} seconds")
 
 def send_webhook_trigger():
     """Send webhook to trigger bot"""
@@ -190,7 +164,7 @@ def main():
         print("🤖 Running in GitHub Actions mode")
         
         # Create webhook bot
-        bot = WebhookBot(bot_token, max_runtime=580)  # 10 минут - 20 секунд на остановку
+        bot = WebhookBot(bot_token, max_runtime=280)  # 5 минут - 20 секунд на остановку
         
         try:
             bot.run_with_timeout()
