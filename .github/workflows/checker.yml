@@ -15,22 +15,55 @@ jobs:
     
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.11'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install Dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run Checker Script
-        run: python main.py
+        run: |
+          echo "🚀 Starting VPN key checker..."
+          python main.py
+          echo "✅ Checker script completed"
+
+      - name: Check for Changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "📝 Changes detected in checked files"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "📝 No changes detected"
+          fi
 
       - name: Commit & Push Results
-        uses: stefanzweifel/git-auto-commit-action@v4
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Auto-update checked keys"
+          commit_message: "Auto-update checked keys $(date '+%Y-%m-%d %H:%M:%S')"
           file_pattern: "checked/*"
+          push_options: --force
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.verify-changed-files.outputs.changed }}" == "true" ]; then
+            echo "✅ Successfully updated and committed VPN keys"
+          else
+            echo "ℹ️ No updates needed - all keys are up to date"
+          fi
