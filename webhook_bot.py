@@ -201,16 +201,25 @@ def main():
             
         print(f"✅ Бот завершил работу. Обработано команд: {bot.commands_processed}")
         
-        # Send notification to admin
+        # Send notification to admin with restart instructions
         try:
             chat_id = os.getenv('CHAT_ID')
-            if chat_id and bot.commands_processed > 0:
+            if chat_id:
                 url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                data = {
-                    'chat_id': chat_id,
-                    'text': f"✅ Вебхук бот завершил работу\n📝 Обработано команд: {bot.commands_processed}\n🔄 Для перезапуска отправьте любую команду",
-                    'parse_mode': 'Markdown'
-                }
+                
+                if bot.commands_processed > 0:
+                    data = {
+                        'chat_id': chat_id,
+                        'text': f"✅ Вебхук бот завершил работу\n📝 Обработано команд: {bot.commands_processed}\n🔄 Для перезапуска отправьте любую команду\n\n💡 Или запустите вручную:\n1. Actions > Webhook Bot Runner\n2. Нажмите 'Run workflow'",
+                        'parse_mode': 'Markdown'
+                    }
+                else:
+                    data = {
+                        'chat_id': chat_id,
+                        'text': f"🤖 Бот завершил работу (нет команд)\n📅 Время: {datetime.now().strftime('%H:%M:%S')}\n🔄 Для перезапуска отправьте любую команду\n\n💡 Бот работает по запросу!\nКаждые 15 минут проверяется очередь команд.",
+                        'parse_mode': 'Markdown'
+                    }
+                
                 requests.post(url, json=data)
         except:
             pass
