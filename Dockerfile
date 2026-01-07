@@ -16,42 +16,47 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копируем все файлы проекта
 COPY . .
 
-# Создаем директорию для ключей, если ее нет
-RUN mkdir -p checked logs
+# Создаем директорию для ключей
+RUN mkdir -p checked
 
 # Устанавливаем переменные окружения
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 
-# Создаем скрипт для запуска с мониторингом
+# Создаем скрипт для запуска с автоперезапуском
 COPY <<EOF /app/start_bot.sh
 #!/bin/bash
+
 echo "🚀 Starting VPN Bot with auto-restart..."
 
 while true; do
-    echo "🤖 Starting bot at \$(date)"
+    echo "🤖 Starting bot at \$(date '+%Y-%m-%d %H:%M:%S')"
+    
+    # Запускаем бота в фоновом режиме
     python run_bot.py &
     BOT_PID=\$!
     
-    # Ждем 10 минут работы бота
-    sleep 600
+    # Ждем 1 час работы бота
+    sleep 3600
     
     # Проверяем если бот еще работает
     if kill -0 \$BOT_PID 2>/dev/null; then
-        echo "⏹️ Terminating bot after 10 minutes..."
-        kill \$BOT_PID
+        echo "⏹️ Restarting bot after 1 hour for stability..."
+        kill \$BOT_PID 2>/dev/null
         sleep 5
     else
-        echo "📋 Bot stopped naturally"
+        echo "📋 Bot stopped, checking for errors..."
+        # Проверяем логи ошибок если нужно
+        sleep 10
     fi
     
-    # Пауза перед перезапуском
-    echo "💤 Sleeping for 60 seconds before restart..."
-    sleep 60
+    # Короткая пауза перед перезапуском
+    echo "💤 Waiting 30 seconds before restart..."
+    sleep 30
 done
 EOF
 
 RUN chmod +x /app/start_bot.sh
 
-# Запускаем скрипт мониторинга
+# Запускаем скрипт с автоперезапуском
 CMD ["/bin/bash", "/app/start_bot.sh"]

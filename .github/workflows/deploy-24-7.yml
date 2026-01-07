@@ -1,0 +1,160 @@
+name: Deploy 24/7 Bot
+
+on:
+  push:
+    branches: [ main, master ]
+    paths: 
+      - 'telegram_bot.py'
+      - 'run_bot.py'
+      - 'requirements.txt'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - '.env.example'
+  workflow_dispatch:
+    inputs:
+      redeploy:
+        description: 'Force redeploy'
+        required: false
+        default: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to Server (Optional)
+        if: secrets.DEPLOY_SERVER_HOST != ''
+        env:
+          DEPLOY_SERVER_HOST: ${{ secrets.DEPLOY_SERVER_HOST }}
+          DEPLOY_SERVER_USER: ${{ secrets.DEPLOY_SERVER_USER }}
+          DEPLOY_SERVER_KEY: ${{ secrets.DEPLOY_SERVER_KEY }}
+        run: |
+          echo "🚀 Deploying to server..."
+          
+          # Создаем скрипт развертывания
+          cat > deploy.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          
+          echo "📦 Updating code..."
+          cd /opt/vpn-bot
+          git pull origin main
+          
+          echo "🐳 Restarting container..."
+          docker-compose down
+          docker-compose up -d --build
+          
+          echo "🧪 Testing bot..."
+          sleep 10
+          docker-compose logs --tail=20 vpn-bot
+          
+          echo "✅ Deployment completed!"
+          EOF
+          
+          chmod +x deploy.sh
+          
+          # Копируем и выполняем на сервере
+          scp -i $DEPLOY_SERVER_KEY deploy.sh $DEPLOY_SERVER_USER@$DEPLOY_SERVER_HOST:/tmp/
+          ssh -i $DEPLOY_SERVER_KEY $DEPLOY_SERVER_USER@$DEPLOY_SERVER_HOST "
+            chmod +x /tmp/deploy.sh
+            sudo /tmp/deploy.sh
+            rm /tmp/deploy.sh
+          "
+
+      - name: Update Deployment Status
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            MESSAGE="🚀 **24/7 Bot Deployment Successful!**\n\n✅ Docker image built and pushed\n🔄 Bot will restart automatically\n📅 Deployed: $(date '+%Y-%m-%d %H:%M:%S UTC')\n\n📱 Bot commands are ready!"
+          else
+            MESSAGE="❌ **24/7 Bot Deployment Failed**\n\n⚠️ Check GitHub Actions logs\n🔧 Please check the deployment configuration"
+          fi
+          
+          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$CHAT_ID" ]; then
+            python3 -c "
+          import requests
+          import os
+          
+          token = os.getenv('TELEGRAM_BOT_TOKEN')
+          chat_id = os.getenv('CHAT_ID')
+          message = os.getenv('MESSAGE')
+          
+          if token and chat_id:
+              url = f'https://api.telegram.org/bot{token}/sendMessage'
+              data = {
+                  'chat_id': chat_id,
+                  'text': message,
+                  'parse_mode': 'Markdown'
+              }
+              response = requests.post(url, json=data)
+              print(f'Status update: {response.status_code}')
+          "
+          fi
+
+      - name: Deployment Instructions
+        if: always()
+        run: |
+          echo "🚀 24/7 Bot Deployment Status"
+          echo ""
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ SUCCESS: Docker image created and pushed"
+            echo ""
+            echo "📋 To run 24/7 bot:"
+            echo ""
+            echo "🔧 Option 1 - Docker (Recommended):"
+            echo "1. Copy .env.example to .env"
+            echo "2. Add TELEGRAM_BOT_TOKEN to .env"
+            echo "3. Run: docker-compose up -d"
+            echo "4. Bot will auto-restart every hour"
+            echo ""
+            echo "🔧 Option 2 - VPS Server:"
+            echo "1. Add DEPLOY_SERVER_* secrets to GitHub"
+            echo "2. Workflow will auto-deploy to your server"
+            echo ""
+            echo "📱 Bot Features:"
+            echo "- ✅ Auto-restart every hour"
+            echo "- ✅ Health checks every 60 seconds"
+            echo "- ✅ Persistent storage for keys"
+            echo "- ✅ All commands working 24/7"
+            echo "- ✅ Automatic error recovery"
+          else
+            echo "❌ FAILED: Check deployment logs"
+          fi

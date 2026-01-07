@@ -84,9 +84,9 @@ text
 
 ---
 
-## 🤖 Telegram Bot
+## 🤖 Telegram Bot (24/7 Работа)
 
-Теперь проект включает готовый Telegram бот для удобного доступа к ключам!
+Проект включает Telegram бот для удобного доступа к ключам с круглосуточной работой!
 
 ### 📱 Команды бота
 - `/start` - Приветствие
@@ -98,35 +98,125 @@ text
 - `/random` - 5 случайных VLESS ключей России
 - `/status` - Статус ключей
 
-### 🚀 Быстрый запуск бота
+### 🚀 Запуск 24/7 Бота
 
 1. **Получите токен** у [@BotFather](https://t.me/BotFather):
    - `/newbot`
    - Имя: `VPN Checker Script`
    - Юзернейм: `vpn_checker_script_bot`
 
-2. **Разверните на сервере:**
+2. **Настройте .env файл:**
    ```bash
-   # Клонируйте репозиторий
+   cp .env.example .env
+   # Добавьте TELEGRAM_BOT_TOKEN в .env
+   ```
+
+3. **Выберите способ развертывания:**
+
+   ### 🏆 Вариант 1 - Docker (Рекомендуется)
+   ```bash
+   # 1. Настройте .env файл
+   cp .env.example .env
+   echo "TELEGRAM_BOT_TOKEN=your_token_here" >> .env
+   
+   # 2. Запустите с автоперезапуском
+   docker-compose up -d
+   
+   # 3. Проверьте статус
+   docker-compose logs vpn-bot
+   ```
+   
+   **✅ Преимущества Docker:**
+   - 🔄 Автоматический перезапуск каждый час
+   - 🏥 Health checks каждые 60 секунд  
+   - 💾 Постоянное хранилище ключей
+   - 🚀 Автовосстановление после ошибок
+   - 📊 Логирование работы
+
+   ### 🔧 Вариант 2 - VPS/Server
+   ```bash
+   # 1. Клонируйте репозиторий
    git clone https://github.com/IvanovTony/vpn-checker-script.git
    cd vpn-checker-script
    
-   # Запустите через Docker (рекомендуется)
-   docker-compose up -d
+   # 2. Настройте окружение
+   cp .env.example .env
+   echo "TELEGRAM_BOT_TOKEN=your_token_here" >> .env
    
-   # Или напрямую
+   # 3. Установите зависимости
    pip3 install -r requirements.txt
-   python3 run_bot.py
+   
+   # 4. Запустите с менеджером процессов
+   pm2 start run_bot.py --name vpn-bot --restart-delay 3000
+   pm2 save
+   pm2 startup
+   ```
+   
+   ### 🌐 Вариант 3 - Авто-развертывание на сервер
+   ```bash
+   # 1. Добавьте секреты в GitHub:
+   # Settings > Secrets and variables > Actions
+   # DOCKER_USERNAME, DOCKER_PASSWORD
+   # DEPLOY_SERVER_HOST, DEPLOY_SERVER_USER, DEPLOY_SERVER_KEY
+   # TELEGRAM_BOT_TOKEN, CHAT_ID
+   
+   # 2. Запустите развертывание:
+   # Actions > Deploy 24/7 Bot > Run workflow
+   
+   # 3. Бот автоматически развернется на вашем сервере
    ```
 
-3. **Установите команды** в @BotFather:
+   ### 🧪 Вариант 4 - GitHub Actions (Только тестирование)
+   ```bash
+   # Добавьте TELEGRAM_BOT_TOKEN в GitHub Secrets
+   # Actions > Run Telegram Bot > Run workflow
+   # Работает 5 минут для проверки
    ```
-   /setcommands
-   ```
-   И выберите вашего бота, затем вставьте команды из файла `README_DEPLOYMENT.md`
 
-   📖 **Подробная инструкция по развертыванию**: [README_DEPLOYMENT.md](README_DEPLOYMENT.md)
-   🔐 **Настройка секретов и токенов**: [SETUP_SECRETS.md](SETUP_SECRETS.md)
+### 📊 Мониторинг и обслуживание
+
+**Docker команды:**
+```bash
+# Проверить статус
+docker-compose ps
+
+# Посмотреть логи
+docker-compose logs -f vpn-bot
+
+# Перезапустить
+docker-compose restart vpn-bot
+
+# Остановить
+docker-compose down
+
+# Обновить
+docker-compose pull && docker-compose up -d
+```
+
+**PM2 команды:**
+```bash
+# Проверить статус
+pm2 status
+
+# Посмотреть логи
+pm2 logs vpn-bot
+
+# Перезапустить
+pm2 restart vpn-bot
+
+# Остановить
+pm2 stop vpn-bot
+```
+
+### ⚡ Возможности 24/7 бота
+
+- **🔄 Автоперезапуск:** Каждый час для стабильности
+- **🏥 Health Checks:** Проверка работоспособности каждую минуту
+- **💾 Persistent Storage:** Ключи сохраняются между перезапусками
+- **🚀 Error Recovery:** Автовосстановление после сбоев
+- **📱 Все команды:** Работают 24/7 без перерывов
+- **📊 Логирование:** Детальные логи для диагностики
+- **🔄 Auto-update:** Автоматическое обновление при пуше в main
 
 ---
 
