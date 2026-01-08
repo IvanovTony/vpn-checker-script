@@ -1,0 +1,19 @@
+# Replit Configuration File
+# This file tells Replit how to run your project
+
+modules = ["python-3.11"]
+
+[workflows]
+runButton = "VPN Checker Bot"
+
+[[workflows.workflow]]
+name = "VPN Checker Bot"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 replit_main.py"
+
+[agent]
+expertMode = true
