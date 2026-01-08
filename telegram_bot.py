@@ -3,7 +3,7 @@ import asyncio
 import logging
 import random
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from telegram import Update, Bot
 from telegram.ext import Application, CommandHandler, ContextTypes
 from dotenv import load_dotenv
@@ -23,6 +23,35 @@ BASE_DIR = "checked"
 FOLDER_RU = os.path.join(BASE_DIR, "RU_Best")
 FOLDER_EURO = os.path.join(BASE_DIR, "My_Euro")
 CHANNEL_NAME = "@vpnCheckerScript"
+
+# Функция для получения московского времени
+def get_moscow_time():
+    """Получить текущее время в часовом поясе Москва (UTC+3)"""
+    return datetime.now() + timedelta(hours=3)
+
+def get_last_update_time(folder: str, prefix: str) -> str:
+    """Получить время последнего обновления ключей из папки"""
+    try:
+        if not os.path.exists(folder):
+            return "Нет данных"
+        
+        latest_time = None
+        for filename in os.listdir(folder):
+            if filename.startswith(prefix) and filename.endswith('.txt'):
+                filepath = os.path.join(folder, filename)
+                file_time = os.path.getmtime(filepath)
+                if latest_time is None or file_time > latest_time:
+                    latest_time = file_time
+        
+        if latest_time:
+            # Конвертируем в московское время
+            moscow_time = datetime.fromtimestamp(latest_time) + timedelta(hours=3)
+            return moscow_time.strftime('%d.%m.%Y %H:%M')
+        else:
+            return "Нет данных"
+    except Exception as e:
+        logger.error(f"Error getting last update time: {e}")
+        return "Ошибка"
 
 
 class VPNBot:
@@ -102,7 +131,7 @@ class VPNBot:
         
         return all_keys
     
-    async def send_keys_message(self, update: Update, keys: list, title: str, emoji: str = "🔑"):
+    async def send_keys_message(self, update: Update, keys: list, title: str, emoji: str = "🔑", folder: str = None, prefix: str = None):
         """Send keys to user with proper formatting"""
         if not keys:
             await update.message.reply_text(
@@ -118,6 +147,12 @@ class VPNBot:
         trojan_keys = [k for k in keys if k.startswith('trojan://')]
         ss_keys = [k for k in keys if k.startswith('ss://')]
         
+        # Get last update time
+        if folder and prefix:
+            last_update = get_last_update_time(folder, prefix)
+        else:
+            last_update = "Нет данных"
+        
         # Create message
         message_parts = [
             f"{emoji} *{title}*",
@@ -126,7 +161,7 @@ class VPNBot:
             f"🔹 VMess: {len(vmess_keys)}",
             f"🔹 Trojan: {len(trojan_keys)}",
             f"🔹 Shadowsocks: {len(ss_keys)}",
-            f"📅 *Обновлено:* {datetime.now().strftime('%d.%m.%Y %H:%M')}",
+            f"📅 *Обновлено:* {last_update}",
             f"📺 *Канал:* {CHANNEL_NAME}"
         ]
         
@@ -155,7 +190,7 @@ class VPNBot:
         content = '\n'.join(keys)
         
         # Create file
-        filename = f"{title.replace(' ', '_').lower()}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        filename = f"{title.replace(' ', '_').lower()}_{get_moscow_time().strftime('%Y%m%d_%H%M%S')}.txt"
         
         try:
             # Send as text message if content is short
@@ -189,7 +224,7 @@ class VPNBot:
     async def ru_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /ru command"""
         keys = self.get_all_keys_from_folder(FOLDER_RU, "ru_white")
-        await self.send_keys_message(update, keys, "🇷🇺 Ключи для России", "🇷🇺")
+        await self.send_keys_message(update, keys, "🇷🇺 Ключи для России", "🇷🇺", FOLDER_RU, "ru_white")
     
     
     async def all_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -197,6 +232,20 @@ class VPNBot:
         ru_keys = self.get_all_keys_from_folder(FOLDER_RU, "ru_white")
         euro_keys = self.get_all_keys_from_folder(FOLDER_EURO, "my_euro")
         all_keys = ru_keys + euro_keys
+        
+        # Get the latest update time from both folders
+        ru_update = get_last_update_time(FOLDER_RU, "ru_white")
+        euro_update = get_last_update_time(FOLDER_EURO, "my_euro")
+        
+        # Use the most recent time
+        if ru_update != "Нет данных" and euro_update != "Нет данных":
+            latest_update = ru_update if ru_update > euro_update else euro_update
+        elif ru_update != "Нет данных":
+            latest_update = ru_update
+        elif euro_update != "Нет данных":
+            latest_update = euro_update
+        else:
+            latest_update = "Нет данных"
         
         await self.send_keys_message(update, all_keys, "🌍 Все ключи", "🌍")
     
@@ -210,7 +259,7 @@ class VPNBot:
         # Take first 50 fastest keys (assuming keys are already sorted by speed in files)
         fastest_vless_keys = vless_ru_keys[:50]
         
-        await self.send_keys_message(update, fastest_vless_keys, "⚡ Топ-50 VLESS ключей России", "⚡")
+        await self.send_keys_message(update, fastest_vless_keys, "⚡ Топ-50 VLESS ключей России", "⚡", FOLDER_RU, "ru_white")
     
     async def fast_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /fast command - send single fastest VLESS key from Russia"""
@@ -230,12 +279,15 @@ class VPNBot:
         # Get the fastest VLESS key (first one, assuming files are sorted by speed)
         fastest_vless_key = vless_ru_keys[0]
         
+        # Get last update time
+        last_update = get_last_update_time(FOLDER_RU, "ru_white")
+        
         # Create message with key
         message_parts = [
             "⚡ *Самый быстрый VLESS ключ России*",
             f"🌍 *Регион:* 🇷🇺 Россия",
             f"🔧 *Протокол:* VLESS",
-            f"📅 *Обновлено:* {datetime.now().strftime('%d.%m.%Y %H:%M')}",
+            f"📅 *Обновлено:* {last_update}",
             f"📺 *Канал:* {CHANNEL_NAME}",
             "",
             "🔑 *Ключ:*",
@@ -265,12 +317,15 @@ class VPNBot:
         fastest_vless_ru_keys = vless_ru_keys[:50]  # Take first 50 for better performance
         random_keys = random.sample(fastest_vless_ru_keys, min(5, len(fastest_vless_ru_keys)))
         
+        # Get last update time
+        last_update = get_last_update_time(FOLDER_RU, "ru_white")
+        
         # Create message
         message_parts = [
             "🎲 *Случайные быстрые VLESS ключи России*",
             f"🌍 *Регион:* 🇷🇺 Россия",
             f"🔧 *Протокол:* VLESS",
-            f"📅 *Обновлено:* {datetime.now().strftime('%d.%m.%Y %H:%M')}",
+            f"📅 *Обновлено:* {last_update}",
             f"📺 *Канал:* {CHANNEL_NAME}",
             "",
             "🔑 *Ключи:*"
@@ -300,17 +355,31 @@ class VPNBot:
         trojan_count = len([k for k in all_keys if k.startswith('trojan://')])
         ss_count = len([k for k in all_keys if k.startswith('ss://')])
         
+        # Get last update times
+        ru_update = get_last_update_time(FOLDER_RU, "ru_white")
+        euro_update = get_last_update_time(FOLDER_EURO, "my_euro")
+        
+        # Use most recent time
+        if ru_update != "Нет данных" and euro_update != "Нет данных":
+            latest_update = ru_update if ru_update > euro_update else euro_update
+        elif ru_update != "Нет данных":
+            latest_update = ru_update
+        elif euro_update != "Нет данных":
+            latest_update = euro_update
+        else:
+            latest_update = "Нет данных"
+        
         status_message = (
             "📊 *Статус VPN ключей*\n\n"
-            f"🇷🇺 *Россия:* {len(ru_keys)} ключей\n"
-            f"🇪🇺 *Европа:* {len(euro_keys)} ключей\n"
+            f"🇷🇺 *Россия:* {len(ru_keys)} ключей (обновлено: {ru_update})\n"
+            f"🇪🇺 *Европа:* {len(euro_keys)} ключей (обновлено: {euro_update})\n"
             f"🌍 *Всего:* {total_keys} ключей\n\n"
             "🔹 *По протоколам:*\n"
             f"  • VLESS: {vless_count}\n"
             f"  • VMess: {vmess_count}\n"
             f"  • Trojan: {trojan_count}\n"
             f"  • Shadowsocks: {ss_count}\n\n"
-            f"📅 *Последнее обновление:* {datetime.now().strftime('%d.%m.%Y %H:%M')}\n"
+            f"📅 *Последнее обновление:* {latest_update}\n"
             f"📺 *Канал:* {CHANNEL_NAME}"
         )
         
