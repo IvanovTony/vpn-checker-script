@@ -12,8 +12,11 @@ import shutil
 from urllib.parse import quote, unquote
 from concurrent.futures import ThreadPoolExecutor
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # ------------------ Настройки ------------------
-BASE_DIR = "checked"
+BASE_DIR = os.getenv("BASE_DIR", "checked")
 FOLDER_RU = os.path.join(BASE_DIR, "RU_Best")
 FOLDER_EURO = os.path.join(BASE_DIR, "My_Euro")
 
@@ -23,15 +26,15 @@ if os.path.exists(FOLDER_EURO): shutil.rmtree(FOLDER_EURO)
 os.makedirs(FOLDER_RU, exist_ok=True)
 os.makedirs(FOLDER_EURO, exist_ok=True)
 
-TIMEOUT = 5 
+TIMEOUT = int(os.getenv("TIMEOUT", "5"))
 socket.setdefaulttimeout(TIMEOUT)
-THREADS = 40 
-CACHE_HOURS = 12
-CHUNK_LIMIT = 1000 
-MAX_KEYS_TO_CHECK = 15000 
+THREADS = int(os.getenv("THREADS", "40"))
+CACHE_HOURS = int(os.getenv("CACHE_HOURS", "12"))
+CHUNK_LIMIT = int(os.getenv("CHUNK_LIMIT", "1000"))
+MAX_KEYS_TO_CHECK = int(os.getenv("MAX_KEYS_TO_CHECK", "15000"))
 
 HISTORY_FILE = os.path.join(BASE_DIR, "history.json")
-MY_CHANNEL = "@vpnCheckerScript" 
+MY_CHANNEL = os.getenv("MY_CHANNEL", "@vpnCheckerScript")
 
 URLS_RU = [
     "https://raw.githubusercontent.com/zieng2/wl/main/vless.txt",
@@ -137,7 +140,7 @@ def check_single_key(data):
         if is_ws:
             protocol = "wss" if is_tls else "ws"
             ws_url = f"{protocol}://{host}:{port}{path}"
-            ws = websocket.create_connection(ws_url, timeout=TIMEOUT, sslopt={"cert_reqs": ssl.CERT_NONE}, sockopt=((socket.SOL_SOCKET, socket.SO_RCVTIMEO, TIMEOUT),))
+            ws = websocket.create_connection(ws_url, timeout=TIMEOUT, sslopt={"cert_reqs": ssl.CERT_NONE}, sockopt=((socket.SOL_SOCKET, socket.SO_RCVTIMEO, TIMEOUT)))
             ws.close()
         elif is_tls:
             context = ssl.create_default_context()
@@ -244,14 +247,14 @@ if __name__ == "__main__":
     
     res_ru_clean = [k for k in res_ru if extract_ping(k) is not None]
     res_euro_clean = [k for k in res_euro if extract_ping(k) is not None]
-    res_ru_clean.sort(key=extract_ping)
-    res_euro_clean.sort(key=extract_ping)
+    res_ru_clean.sort(key=lambda x: extract_ping(x) or 999999)
+    res_euro_clean.sort(key=lambda x: extract_ping(x) or 999999)
 
     ru_files = save_chunked(res_ru_clean, FOLDER_RU, "ru_white")
     euro_files = save_chunked(res_euro_clean, FOLDER_EURO, "my_euro")
 
-    GITHUB_USER_REPO = "IvanovTony/vpn-checker-script"
-    BRANCH = "main"
+    GITHUB_USER_REPO = os.getenv("GITHUB_USER_REPO", "IvanovTony/vpn-checker-script")
+    BRANCH = os.getenv("GITHUB_BRANCH", "main")
     BASE_URL_RU = f"https://raw.githubusercontent.com/{GITHUB_USER_REPO}/{BRANCH}/{BASE_DIR}/RU_Best"
     BASE_URL_EURO = f"https://raw.githubusercontent.com/{GITHUB_USER_REPO}/{BRANCH}/{BASE_DIR}/My_Euro"
     
@@ -267,31 +270,3 @@ if __name__ == "__main__":
         f.write("\n".join(subs_lines))
 
     print("=== SUCCESS: LISTS GENERATED ===")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -7,7 +7,6 @@ from datetime import datetime
 from telegram import Update, Bot
 from telegram.ext import Application, CommandHandler, ContextTypes
 from dotenv import load_dotenv
-import base64
 
 # Load environment variables
 load_dotenv()
@@ -25,9 +24,6 @@ FOLDER_RU = os.path.join(BASE_DIR, "RU_Best")
 FOLDER_EURO = os.path.join(BASE_DIR, "My_Euro")
 CHANNEL_NAME = "@vpnCheckerScript"
 
-# Configuration constants (if needed for future use)
-# EURO_CODES = {"NL", "DE", "FI", "GB", "FR", "SE", "PL", "CZ", "AT", "CH", "IT", "ES", "NO", "DK", "BE", "IE", "LU", "EE", "LV", "LT"}
-# BAD_MARKERS = ["CN", "IR", "KR", "BR", "IN", "RELAY", "POOL", "🇨🇳", "🇮🇷", "🇰🇷"]
 
 class VPNBot:
     def __init__(self, token: str):

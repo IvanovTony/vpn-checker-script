@@ -5,7 +5,7 @@ Simple startup script for VPN Checker Telegram Bot
 
 import os
 import sys
-from telegram_bot import main
+from telegram_bot import VPNBot
 
 if __name__ == "__main__":
     # Check if .env file exists
@@ -29,7 +29,8 @@ if __name__ == "__main__":
     
     print("🚀 Запуск VPN Checker Telegram Bot...")
     try:
-        main()
+        bot = VPNBot(token)
+        bot.run()
     except KeyboardInterrupt:
         print("\n👋 Бот остановлен пользователем")
     except Exception as e:
