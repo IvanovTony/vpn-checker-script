@@ -84,9 +84,9 @@ text
 
 ---
 
-## 🤖 Telegram Bot (24/7 Работа)
+## 🤖 Telegram Bot
 
-Проект включает Telegram бот для удобного доступа к ключам с круглосуточной работой!
+Проект включает Telegram бот для удобного доступа к ключам!
 
 ### 📱 Команды бота
 - `/start` - Приветствие
@@ -98,172 +98,40 @@ text
 - `/random` - 5 случайных VLESS ключей России
 - `/status` - Статус ключей
 
-### 🚀 Запуск 24/7 Бота
+### 🚀 Запуск Бота (для Replit)
+
+**⚠️ ВАЖНО:** Проект оптимизирован для работы в Replit с автоматическим обновлением ключей!
 
 1. **Получите токен** у [@BotFather](https://t.me/BotFather):
    - `/newbot`
    - Имя: `VPN Checker Script`
    - Юзернейм: `vpn_checker_script_bot`
 
-2. **Настройте .env файл:**
+2. **Настройте Replit:**
+   - Нажмите на иконку "Secrets" (🔑) слева
+   - Добавьте секрет:
+     - Key: `TELEGRAM_BOT_TOKEN`
+     - Value: ваш_токен_от_BotFather
+
+3. **Запустите в Replit:**
    ```bash
-   cp .env.example .env
-   # Добавьте TELEGRAM_BOT_TOKEN в .env
+   python replit_main.py
    ```
 
-3. **Выберите способ развертывания:**
+**✅ Что происходит автоматически:**
+- 🤖 Telegram бот запускается и работает 24/7
+- ⏰ Ключи обновляются каждые 4 часа
+- 🔄 Первое обновление через 5 минут после запуска
+- 📊 Все команды бота доступны сразу
 
-   ### 🏆 Вариант 1 - Docker (Рекомендуется)
-   ```bash
-   # 1. Настройте .env файл
-   cp .env.example .env
-   echo "TELEGRAM_BOT_TOKEN=your_token_here" >> .env
-   
-   # 2. Запустите с автоперезапуском
-   docker-compose up -d
-   
-   # 3. Проверьте статус
-   docker-compose logs vpn-bot
-   ```
-   
-   **✅ Преимущества Docker:**
-   - 🔄 Автоматический перезапуск каждый час
-   - 🏥 Health checks каждые 60 секунд  
-   - 💾 Постоянное хранилище ключей
-   - 🚀 Автовосстановление после ошибок
-   - 📊 Логирование работы
+### 🔧 Альтернативный запуск (локально)
 
-   ### 🔧 Вариант 2 - VPS/Server
-   ```bash
-   # 1. Клонируйте репозиторий
-   git clone https://github.com/IvanovTony/vpn-checker-script.git
-   cd vpn-checker-script
-   
-   # 2. Настройте окружение
-   cp .env.example .env
-   echo "TELEGRAM_BOT_TOKEN=your_token_here" >> .env
-   
-   # 3. Установите зависимости
-   pip3 install -r requirements.txt
-   
-   # 4. Запустите с менеджером процессов
-   pm2 start run_bot.py --name vpn-bot --restart-delay 3000
-   pm2 save
-   pm2 startup
-   ```
-   
-   ### 🌐 Вариант 3 - Авто-развертывание на сервер
-   ```bash
-   # 1. Добавьте секреты в GitHub:
-   # Settings > Secrets and variables > Actions
-   # DOCKER_USERNAME, DOCKER_PASSWORD
-   # DEPLOY_SERVER_HOST, DEPLOY_SERVER_USER, DEPLOY_SERVER_KEY
-   # TELEGRAM_BOT_TOKEN, CHAT_ID
-   
-   # 2. Запустите развертывание:
-   # Actions > Deploy 24/7 Bot > Run workflow
-   
-   # 3. Бот автоматически развернется на вашем сервере
-   ```
-
-   ### 🧪 Вариант 4 - GitHub Actions (Только тестирование)
-   ```bash
-   # Добавьте TELEGRAM_BOT_TOKEN в GitHub Secrets
-   # Actions > Run Telegram Bot > Run workflow
-   # Работает 5 минут для проверки
-   ```
-
-### 📊 Мониторинг и обслуживание
-
-**Docker команды:**
+Для локального запуска без автообновления:
 ```bash
-# Проверить статус
-docker-compose ps
-
-# Посмотреть логи
-docker-compose logs -f vpn-bot
-
-# Перезапустить
-docker-compose restart vpn-bot
-
-# Остановить
-docker-compose down
-
-# Обновить
-docker-compose pull && docker-compose up -d
+cp .env.example .env
+# Добавьте TELEGRAM_BOT_TOKEN в .env
+python run_bot.py
 ```
-
-**PM2 команды:**
-```bash
-# Проверить статус
-pm2 status
-
-# Посмотреть логи
-pm2 logs vpn-bot
-
-# Перезапустить
-pm2 restart vpn-bot
-
-# Остановить
-pm2 stop vpn-bot
-```
-
-### ⚡ Возможности 24/7 бота
-
-- **🔄 Автоперезапуск:** Каждый час для стабильности
-- **🏥 Health Checks:** Проверка работоспособности каждую минуту
-- **💾 Persistent Storage:** Ключи сохраняются между перезапусками
-- **🚀 Error Recovery:** Автовосстановление после сбоев
-- **📱 Все команды:** Работают 24/7 без перерывов
-- **📊 Логирование:** Детальные логи для диагностики
-- **🔄 Auto-update:** Автоматическое обновление при пуше в main
-
----
-
-## 🚀 24/7 Развертывание Бота
-
-**⚠️ ВАЖНО:** GitHub Actions не подходит для 24/7 работы (ограничение 72 часа). Используйте облачные сервисы для постоянной работы.
-
-### 🏆 **Рекомендуемый вариант: Railway (БЕСПЛАТНО)**
-
-📖 **Полная инструкция:** [DEPLOY_24_7.md](DEPLOY_24_7.md)
-
-**🚀 Быстрый старт:**
-1. Создайте аккаунт на [Railway.app](https://railway.app)
-2. Нажмите "Deploy from GitHub repo" → выберите этот репозиторий
-3. Добавьте переменные окружения:
-   - `TELEGRAM_BOT_TOKEN` (получите от [@BotFather](https://t.me/BotFather))
-   - `WEBHOOK_URL=https://your-app-name.railway.app/webhook`
-4. Бот автоматически запустится и будет работать 24/7!
-
-### ✅ **Преимущества Railway:**
-- 🆓 **БЕСПЛАТНО** - $0/месяц
-- ⏰ **24/7 uptime** - бот работает постоянно
-- 🔒 **Автоматический HTTPS** - готов для webhook
-- 🔄 **GitHub интеграция** - автоматические обновления
-- 📊 **Мониторинг** - health checks и логи
-- 🚀 **Мгновенный запуск** - через 2-3 минуты
-
-### 📱 **Команды бота (доступны 24/7):**
-- `/start` - Приветствие
-- `/help` - Помощь  
-- `/ru` - Ключи для России
-- `/all` - Все ключи
-- `/vless` - Топ-50 VLESS ключей России
-- `/fast` - Самый быстрый VLESS ключ России
-- `/random` - 5 случайных VLESS ключей России
-- `/status` - Статус ключей
-
-### 🔧 **Альтернативные варианты:**
-
-| Платформа | Цена | Uptime | Сложность настройки |
-|-----------|-------|--------|-------------------|
-| **Railway** | 🆓 | 99.9% | ⭐⭐⭐⭐⭐ |
-| Render | 🆓 | 95% | ⭐⭐⭐ |
-| VPS | 💰 | 99.9% | ⭐⭐ |
-| Docker | 💰 | 99.9% | ⭐⭐⭐⭐ |
-
-**Рекомендация:** Railway - лучший выбор для бесплатного 24/7 бота!
 
 ---
 
