@@ -37,7 +37,7 @@ def get_last_update_time(folder: str, prefix: str) -> str:
         
         latest_time = None
         for filename in os.listdir(folder):
-            if filename.startswith(prefix) and filename.endswith('.txt'):
+            if filename.endswith('.txt'):
                 filepath = os.path.join(folder, filename)
                 file_time = os.path.getmtime(filepath)
                 if latest_time is None or file_time > latest_time:
@@ -124,7 +124,7 @@ class VPNBot:
             return all_keys
         
         for filename in os.listdir(folder):
-            if filename.startswith(prefix) and filename.endswith('.txt'):
+            if filename.endswith('.txt'):
                 filepath = os.path.join(folder, filename)
                 keys = self.get_keys_from_file(filepath)
                 all_keys.extend(keys)
