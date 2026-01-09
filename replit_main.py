@@ -26,40 +26,67 @@ def run_bot():
         
         print("🤖 Starting Telegram Bot...")
         bot = VPNBot(token)
-        bot.run()
+        # Устанавливаем timeout для предотвращения зависаний
+        while True:
+            try:
+                bot.application.run_polling(
+                    drop_pending_updates=True,
+                    timeout=30  # 30 секунд timeout
+                )
+            except Exception as e:
+                print(f"❌ Bot polling error: {e}")
+                print("🔄 Перезапуск бота через 10 секунд...")
+                time.sleep(10)
+                continue
     except Exception as e:
         print(f"❌ Bot error: {e}")
+        # Пытаемся перезапустить бота через 30 секунд
+        print("🔄 Перезапуск бота через 30 секунд...")
+        time.sleep(30)
+        run_bot()  # Рекурсивный перезапуск
 
 def run_auto_update():
     """Запуск автообновления ключей"""
-    try:
-        import schedule
-        
-        def update_keys():
-            print(f"🚀 Starting key update at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            try:
-                os.system("python main.py")
-                print(f"✅ Key update completed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            except Exception as e:
-                print(f"❌ Error updating keys: {e}")
-        
-        print("⏰ Auto-update service started")
-        print("🔄 Keys will be updated every 4 hours")
-        
-        # Планируем обновления каждые 4 часа
-        schedule.every(4).hours.do(update_keys)
-        
-        # Запускаем первое обновление через 5 минут
-        print("⏳ First update in 5 minutes...")
-        time.sleep(300)
-        update_keys()
-        
-        while True:
-            schedule.run_pending()
-            time.sleep(60)
+    while True:  # Бесконечный цикл для перезапуска при ошибках
+        try:
+            import schedule
             
-    except Exception as e:
-        print(f"❌ Auto-update error: {e}")
+            def update_keys():
+                print(f"🚀 Starting key update at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                try:
+                    result = os.system("python main.py")
+                    if result == 0:
+                        print(f"✅ Key update completed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                    else:
+                        print(f"⚠️ Key update completed with warnings at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                except Exception as e:
+                    print(f"❌ Error updating keys: {e}")
+            
+            print("⏰ Auto-update service started")
+            print("🔄 Keys will be updated every 4 hours")
+            
+            # Планируем обновления каждые 4 часа
+            schedule.every(4).hours.do(update_keys)
+            
+            # Запускаем первое обновление через 5 минут
+            print("⏳ First update in 5 minutes...")
+            time.sleep(300)
+            update_keys()
+            
+            # Основной цикл планировщика
+            while True:
+                try:
+                    schedule.run_pending()
+                    time.sleep(60)
+                except Exception as e:
+                    print(f"⚠️ Schedule error: {e}")
+                    time.sleep(60)  # Продолжаем работать даже с ошибками
+                    
+        except Exception as e:
+            print(f"❌ Auto-update service crashed: {e}")
+            print("🔄 Restarting auto-update service in 30 seconds...")
+            time.sleep(30)
+            # Продолжаем внешний цикл для перезапуска
 
 def main():
     """Главная функция"""
