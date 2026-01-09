@@ -15,5 +15,9 @@ author = "agent"
 task = "shell.exec"
 args = "python3 replit_main.py"
 
+[deployment]
+run = ["python", "replit_main.py"]
+deploymentTarget = "cloudrun"
+
 [agent]
 expertMode = true
