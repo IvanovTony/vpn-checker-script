@@ -46,8 +46,15 @@ URLS_RU = [
     "https://s3c3.001.gpucloud.ru/vahe4xkwi/cjdr"
 ]
 
-# Используем только RU источники (Европейские ключи не используются)
-URLS_MY = []
+# Ссылка на твою папку NEW
+URLS_MY = [
+    "https://raw.githubusercontent.com/IvanovTony/vpn-checker-script/main/checked/My_Euro/my_euro_part1.txt",
+    "https://raw.githubusercontent.com/IvanovTony/vpn-checker-script/main/checked/My_Euro/my_euro_part2.txt",
+    "https://raw.githubusercontent.com/IvanovTony/vpn-checker-script/main/checked/My_Euro/my_euro_part3.txt",
+    "https://raw.githubusercontent.com/IvanovTony/vpn-checker-script/main/checked/RU_Best/ru_white_part1.txt",
+    "https://raw.githubusercontent.com/IvanovTony/vpn-checker-script/main/checked/RU_Best/ru_white_part2.txt",
+    "https://raw.githubusercontent.com/IvanovTony/vpn-checker-script/main/checked/RU_Best/ru_white_part3.txt"
+]
 
 EURO_CODES = {"NL", "DE", "FI", "GB", "FR", "SE", "PL", "CZ", "AT", "CH", "IT", "ES", "NO", "DK", "BE", "IE", "LU", "EE", "LV", "LT"}
 BAD_MARKERS = ["CN", "IR", "KR", "BR", "IN", "RELAY", "POOL", "🇨🇳", "🇮🇷", "🇰🇷"] 
