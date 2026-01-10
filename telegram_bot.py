@@ -206,7 +206,6 @@ class VPNBot:
                     )
             else:
                 # Send as file for large content
-                import io
                 file = io.BytesIO(content.encode('utf-8'))
                 file.name = filename
                 await update.message.reply_document(
