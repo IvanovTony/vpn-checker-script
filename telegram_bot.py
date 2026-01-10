@@ -70,6 +70,7 @@ class VPNBot:
         self.application.add_handler(CommandHandler("fast", self.fast_command))
         self.application.add_handler(CommandHandler("random", self.random_command))
         self.application.add_handler(CommandHandler("status", self.status_command))
+        self.application.add_handler(CommandHandler("update", self.update_command))
     
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command"""
@@ -81,6 +82,7 @@ class VPNBot:
             "/vless - Получить топ-50 самых быстрых VLESS ключей России\n"
             "/fast - Получить самый быстрый VLESS ключ России\n"
             "/random - Получить 5 случайных VLESS ключей России\n"
+            "/update - 🔄 Обновить ключи (занимает 5-10 минут)\n"
             "/status - Проверить статус ключей\n"
             "/help - Показать это сообщение\n\n"
             f"📺 *Наш канал:* {CHANNEL_NAME}\n"
@@ -97,6 +99,7 @@ class VPNBot:
             "*/vless* - 🔹 Отправляет топ-50 самых быстрых VLESS ключей России\n"
             "*/fast* - 🔹 Отправляет самый быстрый VLESS ключ России\n"
             "*/random* - 🔹 Отправляет 5 случайных быстрых VLESS ключей России\n"
+            "*/update* - 🔹 🔄 Запускает обновление ключей (занимает 5-10 минут)\n"
             "*/status* - 🔹 Показывает статус и количество ключей\n"
             "*/help* - 🔹 Показывает это сообщение\n\n"
             f"📺 *Канал:* {CHANNEL_NAME}\n"
@@ -341,6 +344,75 @@ class VPNBot:
     
     
     
+    async def update_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /update command - run main.py to update keys"""
+        # Отправляем уведомление о начале обновления
+        await update.message.reply_text(
+            "🔄 *Начинаю обновление ключей...*\n\n"
+            "⏳ Это может занять несколько минут.\n"
+            "📊 Скрипт проверит работоспособность ключей.\n"
+            "✅ Результаты будут доступны через команду /status",
+            parse_mode='Markdown'
+        )
+        
+        logger.info("🔄 Запуск обновления ключей через /update команду")
+        
+        # Запускаем main.py в отдельном процессе
+        import subprocess
+        try:
+            # Запускаем main.py
+            process = subprocess.Popen(
+                ['python3', 'main.py'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            # Ждем завершения (с таймаутом в 10 минут)
+            try:
+                stdout, stderr = process.communicate(timeout=600)
+                
+                if process.returncode == 0:
+                    # Обновление успешно
+                    await update.message.reply_text(
+                        "✅ *Обновление завершено успешно!*\n\n"
+                        f"📅 {get_moscow_time().strftime('%d.%m.%Y %H:%M')}\n\n"
+                        "🎉 Теперь вы можете использовать команды:\n"
+                        "  /ru - Ключи для России\n"
+                        "  /all - Все ключи\n"
+                        "  /status - Статус ключей",
+                        parse_mode='Markdown'
+                    )
+                    logger.info("✅ Обновление ключей завершено успешно")
+                else:
+                    # Ошибка при выполнении
+                    await update.message.reply_text(
+                        f"❌ *Ошибка при обновлении*\n\n"
+                        f"Код ошибки: {process.returncode}\n\n"
+                        "Пожалуйста, проверьте логи или попробуйте позже.",
+                        parse_mode='Markdown'
+                    )
+                    logger.error(f"❌ Ошибка обновления: {stderr}")
+                    
+            except subprocess.TimeoutExpired:
+                process.kill()
+                await update.message.reply_text(
+                    "⏱ *Превышено время ожидания*\n\n"
+                    "Обновление заняло более 10 минут.\n"
+                    "Попробуйте позже или проверьте логи.",
+                    parse_mode='Markdown'
+                )
+                logger.error("⏱ Превышен таймаут обновления")
+                
+        except Exception as e:
+            await update.message.reply_text(
+                f"❌ *Критическая ошибка*\n\n"
+                f"{str(e)}\n\n"
+                "Попробуйте позже или проверьте логи.",
+                parse_mode='Markdown'
+            )
+            logger.error(f"❌ Критическая ошибка: {e}")
+    
     async def status_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /status command"""
         ru_keys = self.get_all_keys_from_folder(FOLDER_RU, "ru_white")
@@ -406,6 +478,7 @@ class VPNBot:
         print("  /vless - Только VLESS ключи России")
         print("  /fast - Самый быстрый VLESS ключ России")
         print("  /random - 5 случайных VLESS ключей России")
+        print("  /update - 🔄 Обновить ключи")
         print("  /status - Статус ключей")
         print(f"📺 Канал: {CHANNEL_NAME}")
         
@@ -418,6 +491,7 @@ class VPNBot:
         print("vless - ⚡ Топ-50 VLESS ключей России")
         print("fast - 🚀 Самый быстрый VLESS ключ России")
         print("random - 🎲 5 случайных VLESS ключей России")
+        print("update - 🔄 Обновить ключи")
         print("status - 📊 Статус ключей")
         
         # Use run_polling (synchronous method)
