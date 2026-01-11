@@ -90,7 +90,6 @@ class VPNBot:
         self.application.add_handler(CommandHandler("random", self.random_command))
         self.application.add_handler(CommandHandler("youtube", self.youtube_command))
         self.application.add_handler(CommandHandler("status", self.status_command))
-        self.application.add_handler(CommandHandler("update", self.update_command))
     
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command"""
@@ -103,7 +102,6 @@ class VPNBot:
             "/fast - Получить топ-5 самых быстрых VLESS ключей России\n"
             "/random - Получить 5 случайных VLESS ключей России\n"
             "/youtube - Получить VLESS ключи для разблокировки YouTube в России\n"
-            "/update - 🔄 Обновить ключи (занимает 5-10 минут)\n"
             "/status - Проверить статус ключей\n"
             "/help - Показать это сообщение\n\n"
             f"📺 *Наш канал:* {CHANNEL_NAME}\n"
@@ -120,8 +118,7 @@ class VPNBot:
             "*/vless* - 🔹 Отправляет топ-50 самых быстрых VLESS ключей России\n"
             "*/fast* - 🔹 Отправляет топ-5 самых быстрых VLESS ключей России\n"
             "*/random* - 🔹 Отправляет 5 случайных VLESS ключей России (из топ-1000)\n"
-            "*/youtube* - 🔹 Отправляет VLESS ключи для разблокировки YouTube в России\n"
-            "*/update* - 🔹 🔄 Запускает обновление ключей (занимает 5-10 минут)\n"
+            "*/youtube* - 🔹 Отправляет VLESS ключи с тегом YoutubeUnBlockRu\n"
             "*/status* - 🔹 Показывает статус и количество ключей\n"
             "*/help* - 🔹 Показывает это сообщение\n\n"
             f"📺 *Канал:* {CHANNEL_NAME}\n"
@@ -378,111 +375,45 @@ class VPNBot:
     
     
     
-    async def update_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /update command - run main.py to update keys"""
-        # Отправляем уведомление о начале обновления
-        await update.message.reply_text(
-            "🔄 *Начинаю обновление ключей...*\n\n"
-            "⏳ Это может занять несколько минут.\n"
-            "📊 Скрипт проверит работоспособность ключей.\n"
-            "✅ Результаты будут доступны через команду /status",
-            parse_mode='Markdown'
-        )
-        
-        logger.info("🔄 Запуск обновления ключей через /update команду")
-        
-        # Запускаем main.py в отдельном процессе
-        import subprocess
-        try:
-            # Запускаем main.py
-            process = subprocess.Popen(
-                ['python3', 'main.py'],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-            
-            # Ждем завершения (с таймаутом в 10 минут)
-            try:
-                stdout, stderr = process.communicate(timeout=600)
-                
-                if process.returncode == 0:
-                    # Обновление успешно
-                    await update.message.reply_text(
-                        "✅ *Обновление завершено успешно!*\n\n"
-                        f"📅 {get_moscow_time().strftime('%d.%m.%Y %H:%M')}\n\n"
-                        "🎉 Теперь вы можете использовать команды:\n"
-                        "  /ru - Ключи для России\n"
-                        "  /all - Все ключи\n"
-                        "  /status - Статус ключей",
-                        parse_mode='Markdown'
-                    )
-                    logger.info("✅ Обновление ключей завершено успешно")
-                else:
-                    # Ошибка при выполнении
-                    await update.message.reply_text(
-                        f"❌ *Ошибка при обновлении*\n\n"
-                        f"Код ошибки: {process.returncode}\n\n"
-                        "Пожалуйста, проверьте логи или попробуйте позже.",
-                        parse_mode='Markdown'
-                    )
-                    logger.error(f"❌ Ошибка обновления: {stderr}")
-                    
-            except subprocess.TimeoutExpired:
-                process.kill()
-                await update.message.reply_text(
-                    "⏱ *Превышено время ожидания*\n\n"
-                    "Обновление заняло более 10 минут.\n"
-                    "Попробуйте позже или проверьте логи.",
-                    parse_mode='Markdown'
-                )
-                logger.error("⏱ Превышен таймаут обновления")
-                
-        except Exception as e:
-            await update.message.reply_text(
-                f"❌ *Критическая ошибка*\n\n"
-                f"{str(e)}\n\n"
-                "Попробуйте позже или проверьте логи.",
-                parse_mode='Markdown'
-            )
-            logger.error(f"❌ Критическая ошибка: {e}")
-    
     async def youtube_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /youtube command - send VLESS keys for YouTube unblocking in Russia"""
+        """Handle /youtube command - send VLESS keys with YoutubeUnBlockRu tag"""
         ru_keys = self.get_all_keys_from_folder(FOLDER_RU, "ru_white")
         
-        # Filter only VLESS keys from Russia (for YouTube unblocking)
-        vless_ru_keys = [k for k in ru_keys if k.startswith('vless://') and get_country_from_key(k) == 'RU']
+        # Filter only VLESS keys with YoutubeUnBlockRu tag
+        vless_youtube_keys = [k for k in ru_keys if k.startswith('vless://') and 'YoutubeUnBlockRu' in k]
         
-        if not vless_ru_keys:
+        if not vless_youtube_keys:
             await update.message.reply_text(
-                "❌ *VLESS ключи для разблокировки YouTube*\n\nК сожалению, в данный момент нет доступных VLESS ключей из России. "
+                "❌ *VLESS ключи для разблокировки YouTube*\n\nК сожалению, в данный момент нет доступных VLESS ключей с тегом YoutubeUnBlockRu. "
                 "Попробуйте позже или проверьте наш канал.",
                 parse_mode='Markdown'
             )
             return
         
-        # Take top 10 fastest Russian VLESS keys for YouTube
-        fastest_ru_vless_keys = vless_ru_keys[:10]
+        # Take top 10 fastest VLESS keys with YoutubeUnBlockRu tag
+        fastest_youtube_keys = vless_youtube_keys[:10]
         
         # Get last update time
         last_update = get_last_update_time(FOLDER_RU, "ru_white")
         
         # Create message
         message_parts = [
-            "🎬 *VLESS ключи для разблокировки YouTube в России*",
+            "🎬 *VLESS ключи для разблокировки YouTube*",
             f"🔧 *Протокол:* VLESS",
-            f"🌍 *Страна:* 🇷🇺 Россия",
+            f"🏷️ *Тег:* YoutubeUnBlockRu",
             f"📅 *Обновлено:* {last_update}",
             f"📺 *Канал:* {CHANNEL_NAME}",
             "",
-            "🔑 *Топ-10 VLESS ключей России:*"
+            "🔑 *Топ-10 VLESS ключей:*"
         ]
         
-        # Add Russian VLESS keys
-        for i, key in enumerate(fastest_ru_vless_keys, 1):
+        # Add VLESS keys with country info
+        for i, key in enumerate(fastest_youtube_keys, 1):
+            country = get_country_from_key(key)
+            country_emoji = f"🇷🇺" if country == "RU" else f"🌍"
+            message_parts.append(f"{i}. {country_emoji} `{country if country else '??'}`")
             message_parts.append(f"`{key}`")
-            if i < len(fastest_ru_vless_keys):
+            if i < len(fastest_youtube_keys):
                 message_parts.append("")  # Add spacing between keys
         
         await update.message.reply_text('\n'.join(message_parts), parse_mode='Markdown')
@@ -552,8 +483,7 @@ class VPNBot:
         print("  /vless - Только VLESS ключи России")
         print("  /fast - Топ-5 самых быстрых VLESS ключей России")
         print("  /random - 5 случайных VLESS ключей России (из топ-1000)")
-        print("  /youtube - VLESS для разблокировки YouTube в России")
-        print("  /update - 🔄 Обновить ключи")
+        print("  /youtube - VLESS для разблокировки YouTube")
         print("  /status - Статус ключей")
         print(f"📺 Канал: {CHANNEL_NAME}")
         
@@ -564,9 +494,9 @@ class VPNBot:
         print("ru - 🇷🇺 Получить ключи для России")
         print("all - 🌍 Получить все ключи")
         print("vless - ⚡ Топ-50 VLESS ключей России")
-        print("fast - 🚀 Самый быстрый VLESS ключ России")
+        print("fast - 🚀 Топ-5 самых быстрых VLESS ключей России")
         print("random - 🎲 5 случайных VLESS ключей России")
-        print("update - 🔄 Обновить ключи")
+        print("youtube - 🎬 VLESS для разблокировки YouTube")
         print("status - 📊 Статус ключей")
         
         # Use run_polling (synchronous method)
