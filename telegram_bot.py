@@ -88,7 +88,6 @@ class VPNBot:
         self.application.add_handler(CommandHandler("vless", self.vless_command))
         self.application.add_handler(CommandHandler("fast", self.fast_command))
         self.application.add_handler(CommandHandler("random", self.random_command))
-        self.application.add_handler(CommandHandler("youtube", self.youtube_command))
         self.application.add_handler(CommandHandler("status", self.status_command))
     
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -101,7 +100,6 @@ class VPNBot:
             "/vless - Получить топ-50 самых быстрых VLESS ключей России\n"
             "/fast - Получить топ-5 самых быстрых VLESS ключей России\n"
             "/random - Получить 5 случайных VLESS ключей России\n"
-            "/youtube - Получить VLESS ключи для разблокировки YouTube в России\n"
             "/status - Проверить статус ключей\n"
             "/help - Показать это сообщение\n\n"
             f"📺 *Наш канал:* {CHANNEL_NAME}\n"
@@ -118,7 +116,6 @@ class VPNBot:
             "*/vless* - 🔹 Отправляет топ-50 самых быстрых VLESS ключей России\n"
             "*/fast* - 🔹 Отправляет топ-5 самых быстрых VLESS ключей России\n"
             "*/random* - 🔹 Отправляет 5 случайных VLESS ключей России (из топ-1000)\n"
-            "*/youtube* - 🔹 Отправляет VLESS ключи с тегом YoutubeUnBlockRu\n"
             "*/status* - 🔹 Показывает статус и количество ключей\n"
             "*/help* - 🔹 Показывает это сообщение\n\n"
             f"📺 *Канал:* {CHANNEL_NAME}\n"
@@ -375,49 +372,6 @@ class VPNBot:
     
     
     
-    async def youtube_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /youtube command - send VLESS keys with YoutubeUnBlockRu tag"""
-        ru_keys = self.get_all_keys_from_folder(FOLDER_RU, "ru_white")
-        
-        # Filter only VLESS keys with YoutubeUnBlockRu tag
-        vless_youtube_keys = [k for k in ru_keys if k.startswith('vless://') and 'YoutubeUnBlockRu' in k]
-        
-        if not vless_youtube_keys:
-            await update.message.reply_text(
-                "❌ *VLESS ключи для разблокировки YouTube*\n\nК сожалению, в данный момент нет доступных VLESS ключей с тегом YoutubeUnBlockRu. "
-                "Попробуйте позже или проверьте наш канал.",
-                parse_mode='Markdown'
-            )
-            return
-        
-        # Take top 10 fastest VLESS keys with YoutubeUnBlockRu tag
-        fastest_youtube_keys = vless_youtube_keys[:10]
-        
-        # Get last update time
-        last_update = get_last_update_time(FOLDER_RU, "ru_white")
-        
-        # Create message
-        message_parts = [
-            "🎬 *VLESS ключи для разблокировки YouTube*",
-            f"🔧 *Протокол:* VLESS",
-            f"🏷️ *Тег:* YoutubeUnBlockRu",
-            f"📅 *Обновлено:* {last_update}",
-            f"📺 *Канал:* {CHANNEL_NAME}",
-            "",
-            "🔑 *Топ-10 VLESS ключей:*"
-        ]
-        
-        # Add VLESS keys with country info
-        for i, key in enumerate(fastest_youtube_keys, 1):
-            country = get_country_from_key(key)
-            country_emoji = f"🇷🇺" if country == "RU" else f"🌍"
-            message_parts.append(f"{i}. {country_emoji} `{country if country else '??'}`")
-            message_parts.append(f"`{key}`")
-            if i < len(fastest_youtube_keys):
-                message_parts.append("")  # Add spacing between keys
-        
-        await update.message.reply_text('\n'.join(message_parts), parse_mode='Markdown')
-    
     async def status_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /status command"""
         ru_keys = self.get_all_keys_from_folder(FOLDER_RU, "ru_white")
@@ -483,20 +437,18 @@ class VPNBot:
         print("  /vless - Только VLESS ключи России")
         print("  /fast - Топ-5 самых быстрых VLESS ключей России")
         print("  /random - 5 случайных VLESS ключей России (из топ-1000)")
-        print("  /youtube - VLESS для разблокировки YouTube")
         print("  /status - Статус ключей")
         print(f"📺 Канал: {CHANNEL_NAME}")
         
         print("💡 Примечание: Команды можно установить вручную через @BotFather")
         print("📝 Список команд для установки в @BotFather:")
         print("start - 🎉 Запустить бота")
-        print("help - 📖 Показать помощь")
-        print("ru - 🇷🇺 Получить ключи для России")
-        print("all - 🌍 Получить все ключи")
-        print("vless - ⚡ Топ-50 VLESS ключей России")
-        print("fast - 🚀 Топ-5 самых быстрых VLESS ключей России")
-        print("random - 🎲 5 случайных VLESS ключей России")
-        print("youtube - 🎬 VLESS для разблокировки YouTube")
+        print("help - 📖 Список команд")
+        print("ru - 🇷🇺 Все ключи для России")
+        print("all - 🌍 Все ключи (RU + EU)")
+        print("vless - ⚡ Топ-50 VLESS ключей")
+        print("fast - 🚀 Топ-5 самых быстрых VLESS")
+        print("random - 🎲 5 случайных VLESS")
         print("status - 📊 Статус ключей")
         
         # Use run_polling (synchronous method)
