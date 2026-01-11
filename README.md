@@ -1,8 +1,6 @@
-# 🛡 VPN Checker & Aggregator (Raw/Beta Version)
+# 🛡 VPN Checker & Aggregator
 
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/IvanovTony/vpn-checker-script/run_check.yml?label=Auto-Check&style=for-the-badge)
-
-**ПРЕДУПРЕЖДЕНИЕ:** Это ранняя (сырая) версия скрипта. Возможны ошибки при плохом соединении с GitHub и ложные срабатывания при проверке.
 
 Скрипт для автоматического сбора, валидации и сортировки VLESS/VMess/Trojan конфигураций. Работает полностью на GitHub Actions (бесплатно, сервер не нужен).
 
@@ -29,7 +27,7 @@
 `https://raw.githubusercontent.com/USER/REPO/main/checked/RU_Best/ru_white.txt`
 
 **Если ключей много (авто-разбивка):**
-`https://raw.githubusercontent.com/USER/REPO/main/checked/RU_Best/ru_white.txt`
+`https://raw.githubusercontent.com/USER/REPO/main/checked/RU_Best/ru_white_part1.txt`
 `https://raw.githubusercontent.com/USER/REPO/main/checked/RU_Best/ru_white_part2.txt`
 
 *(Ссылки генерируются автоматически и всегда ведут на существующие файлы)*
@@ -57,24 +55,24 @@
 Откройте файл `main.py` и отредактируйте 3 обязательных пункта под себя:
 
 **1. Ваш канал/метка (Строка 33):**
+```python
 MY_CHANNEL = "@your_channel_name"
-
+```
 Будет отображаться в названии каждого ключа
-text
 
 **2. Ваши источники (Строка 46):**
+```python
 URLS_MY = [
-"https://raw.githubusercontent.com/..."
+    "https://raw.githubusercontent.com/...",
 ]
-
+```
 Вставьте сюда ссылки на ваши RAW файлы с ключами.
-text
 
 **3. Ваш репозиторий (Строка 188) — КРИТИЧНО:**
+```python
 GITHUB_USER_REPO = "ВАШ_НИК/НАЗВАНИЕ_РЕПОЗИТОРИЯ"
-
-Например: "ivanov/vpn-checker". Без этого ссылки в файле подписок будут вести на чужой репо.
-text
+```
+Например: `ivanov/vpn-checker`. Без этого ссылки в файле подписок будут вести на чужой репо.
 
 ### Шаг 4. Запуск
 1.  Перейдите во вкладку **Actions**.
@@ -86,7 +84,7 @@ text
 
 ## 🤖 Telegram Bot
 
-Проект включает Telegram бот для удобного доступа к ключам!
+Проект включает Telegram бот для удобного доступа к ключам! Бот запущен на Railway.app и автоматически использует обновленные файлы из репозитория.
 
 ### 📱 Команды бота
 - `/start` - Приветствие
@@ -98,40 +96,13 @@ text
 - `/random` - 5 случайных VLESS ключей России
 - `/status` - Статус ключей
 
-### 🚀 Запуск Бота (для Replit)
+### 🚀 Как это работает
 
-**⚠️ ВАЖНО:** Проект оптимизирован для работы в Replit с автоматическим обновлением ключей!
+**Архитектура проекта:**
+- 🔄 **GitHub Actions** → автоматически запускает `main.py` каждые 4 часа → проверяет и обновляет ключи в репозитории
+- 🤖 **Railway.app** → запускает Telegram бот → бот читает файлы `checked/` из репозитория
 
-1. **Получите токен** у [@BotFather](https://t.me/BotFather):
-   - `/newbot`
-   - Имя: `VPN Checker Script`
-   - Юзернейм: `vpn_checker_script_bot`
-
-2. **Настройте Replit:**
-   - Нажмите на иконку "Secrets" (🔑) слева
-   - Добавьте секрет:
-     - Key: `TELEGRAM_BOT_TOKEN`
-     - Value: ваш_токен_от_BotFather
-
-3. **Запустите в Replit:**
-   ```bash
-   python replit_main.py
-   ```
-
-**✅ Что происходит автоматически:**
-- 🤖 Telegram бот запускается и работает 24/7
-- ⏰ Ключи обновляются каждые 4 часа
-- 🔄 Первое обновление через 5 минут после запуска
-- 📊 Все команды бота доступны сразу
-
-### 🔧 Альтернативный запуск (локально)
-
-Для локального запуска без автообновления:
-```bash
-cp .env.example .env
-# Добавьте TELEGRAM_BOT_TOKEN в .env
-python run_bot.py
-```
+Таким образом, ключи обновляются автоматически через GitHub Actions, а бот на Railway всегда работает с актуальными данными.
 
 ---
 
@@ -146,5 +117,3 @@ python run_bot.py
 *   **MAX_KEYS_TO_CHECK (15000):** Лимит входящих ключей. Если ссылок больше, лишние отбрасываются для экономии ресурсов.
 *   **EURO_CODES:** Список кодов стран, которые считаются "Европой".
 *   **BAD_MARKERS:** Стоп-слова (CN, IR, RELAY), при наличии которых ключ удаляется сразу.
-
----
