@@ -24,6 +24,25 @@ FOLDER_RU = os.path.join(BASE_DIR, "RU_Best")
 FOLDER_EURO = os.path.join(BASE_DIR, "My_Euro")
 CHANNEL_NAME = "@vpnCheckerScript"
 
+EURO_CODES = {"NL", "DE", "FI", "GB", "FR", "SE", "PL", "CZ", "AT", "CH", "IT", "ES", "NO", "DK", "BE", "IE", "LU", "EE", "LV", "LT"}
+
+def get_country_from_key(key: str) -> str:
+    """Извлечь код страны из ключа (из тега в конце)"""
+    try:
+        # Код страны в теге: #100ms_NO или #519ms_RU
+        if "#" in key:
+            parts = key.split("#")[-1]
+            # Формат: 100ms_NO_country или 100ms_RU
+            country_parts = parts.split("_")
+            if len(country_parts) >= 2:
+                country = country_parts[1]
+                # Проверяем что это код страны (2-3 символа)
+                if len(country) >= 2:
+                    return country.upper()
+    except:
+        pass
+    return None
+
 # Функция для получения московского времени
 def get_moscow_time():
     """Получить текущее время в часовом поясе Москва (UTC+3)"""
@@ -69,6 +88,7 @@ class VPNBot:
         self.application.add_handler(CommandHandler("vless", self.vless_command))
         self.application.add_handler(CommandHandler("fast", self.fast_command))
         self.application.add_handler(CommandHandler("random", self.random_command))
+        self.application.add_handler(CommandHandler("youtube", self.youtube_command))
         self.application.add_handler(CommandHandler("status", self.status_command))
         self.application.add_handler(CommandHandler("update", self.update_command))
     
@@ -80,8 +100,9 @@ class VPNBot:
             "/ru - Получить рабочие ключи для России\n"
             "/all - Получить все рабочие ключи\n"
             "/vless - Получить топ-50 самых быстрых VLESS ключей России\n"
-            "/fast - Получить самый быстрый VLESS ключ России\n"
+            "/fast - Получить топ-5 самых быстрых VLESS ключей России\n"
             "/random - Получить 5 случайных VLESS ключей России\n"
+            "/youtube - Получить VLESS ключи для разблокировки YouTube в России\n"
             "/update - 🔄 Обновить ключи (занимает 5-10 минут)\n"
             "/status - Проверить статус ключей\n"
             "/help - Показать это сообщение\n\n"
@@ -97,8 +118,9 @@ class VPNBot:
             "*/ru* - 🔹 Отправляет актуальные VPN ключи для России\n"
             "*/all* - 🔹 Отправляет все доступные ключи\n"
             "*/vless* - 🔹 Отправляет топ-50 самых быстрых VLESS ключей России\n"
-            "*/fast* - 🔹 Отправляет самый быстрый VLESS ключ России\n"
-            "*/random* - 🔹 Отправляет 5 случайных быстрых VLESS ключей России\n"
+            "*/fast* - 🔹 Отправляет топ-5 самых быстрых VLESS ключей России\n"
+            "*/random* - 🔹 Отправляет 5 случайных VLESS ключей России (из топ-1000)\n"
+            "*/youtube* - 🔹 Отправляет VLESS ключи для разблокировки YouTube в России\n"
             "*/update* - 🔹 🔄 Запускает обновление ключей (занимает 5-10 минут)\n"
             "*/status* - 🔹 Показывает статус и количество ключей\n"
             "*/help* - 🔹 Показывает это сообщение\n\n"
@@ -126,7 +148,10 @@ class VPNBot:
         if not os.path.exists(folder):
             return all_keys
         
-        for filename in os.listdir(folder):
+        # Сортируем файлы по имени для правильного порядка (part1, part2, part3...)
+        sorted_files = sorted(os.listdir(folder))
+        
+        for filename in sorted_files:
             if filename.endswith('.txt'):
                 filepath = os.path.join(folder, filename)
                 keys = self.get_keys_from_file(filepath)
@@ -252,80 +277,41 @@ class VPNBot:
         await self.send_keys_message(update, all_keys, "🌍 Все ключи", "🌍")
     
     async def vless_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /vless command - send only top 50 fastest VLESS keys from Russia"""
+        """Handle /vless command - send top 50 fastest VLESS keys from all files"""
         ru_keys = self.get_all_keys_from_folder(FOLDER_RU, "ru_white")
         
-        # Filter only VLESS keys from Russia
-        vless_ru_keys = [k for k in ru_keys if k.startswith('vless://')]
+        # Filter only VLESS keys (any country)
+        vless_keys = [k for k in ru_keys if k.startswith('vless://')]
         
         # Take first 50 fastest keys (assuming keys are already sorted by speed in files)
-        fastest_vless_keys = vless_ru_keys[:50]
+        fastest_vless_keys = vless_keys[:50]
         
-        await self.send_keys_message(update, fastest_vless_keys, "⚡ Топ-50 VLESS ключей России", "⚡", FOLDER_RU, "ru_white")
+        await self.send_keys_message(update, fastest_vless_keys, "⚡ Топ-50 VLESS ключей", "⚡", FOLDER_RU, "ru_white")
     
     async def fast_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /fast command - send single fastest VLESS key from Russia"""
+        """Handle /fast command - send top 5 fastest VLESS keys from all files"""
         ru_keys = self.get_all_keys_from_folder(FOLDER_RU, "ru_white")
         
-        # Filter only VLESS keys from Russia
-        vless_ru_keys = [k for k in ru_keys if k.startswith('vless://')]
+        # Filter only VLESS keys (any country)
+        vless_keys = [k for k in ru_keys if k.startswith('vless://')]
         
-        if not vless_ru_keys:
+        if not vless_keys:
             await update.message.reply_text(
-                "❌ *Самый быстрый VLESS ключ России*\n\nК сожалению, в данный момент нет доступных VLESS ключей из России. "
+                "❌ *Самые быстрые VLESS ключи*\n\nК сожалению, в данный момент нет доступных VLESS ключей. "
                 "Попробуйте позже или проверьте наш канал.",
                 parse_mode='Markdown'
             )
             return
         
-        # Get the fastest VLESS key (first one, assuming files are sorted by speed)
-        fastest_vless_key = vless_ru_keys[0]
+        # Get top 5 fastest VLESS keys
+        fastest_vless_keys = vless_keys[:5]
         
         # Get last update time
         last_update = get_last_update_time(FOLDER_RU, "ru_white")
         
-        # Create message with key
+        # Create message with keys
         message_parts = [
-            "⚡ *Самый быстрый VLESS ключ России*",
-            f"🌍 *Регион:* 🇷🇺 Россия",
-            f"🔧 *Протокол:* VLESS",
-            f"📅 *Обновлено:* {last_update}",
-            f"📺 *Канал:* {CHANNEL_NAME}",
-            "",
-            "🔑 *Ключ:*",
-            f"`{fastest_vless_key}`"
-        ]
-        
-        await update.message.reply_text('\n'.join(message_parts), parse_mode='Markdown')
-    
-    async def random_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /random command - send random fast VLESS keys from Russia"""
-        import random
-        
-        ru_keys = self.get_all_keys_from_folder(FOLDER_RU, "ru_white")
-        
-        # Filter only VLESS keys from Russia
-        vless_ru_keys = [k for k in ru_keys if k.startswith('vless://')]
-        
-        if not vless_ru_keys:
-            await update.message.reply_text(
-                "❌ *Случайные VLESS ключи России*\n\nК сожалению, в данный момент нет доступных VLESS ключей из России. "
-                "Попробуйте позже или проверьте наш канал.",
-                parse_mode='Markdown'
-            )
-            return
-        
-        # Take top 50 fastest Russian VLESS keys and select 5 random ones
-        fastest_vless_ru_keys = vless_ru_keys[:50]  # Take first 50 for better performance
-        random_keys = random.sample(fastest_vless_ru_keys, min(5, len(fastest_vless_ru_keys)))
-        
-        # Get last update time
-        last_update = get_last_update_time(FOLDER_RU, "ru_white")
-        
-        # Create message
-        message_parts = [
-            "🎲 *Случайные быстрые VLESS ключи России*",
-            f"🌍 *Регион:* 🇷🇺 Россия",
+            "⚡ *Топ-5 самых быстрых VLESS ключей*",
             f"🔧 *Протокол:* VLESS",
             f"📅 *Обновлено:* {last_update}",
             f"📺 *Канал:* {CHANNEL_NAME}",
@@ -333,8 +319,56 @@ class VPNBot:
             "🔑 *Ключи:*"
         ]
         
-        # Add random keys
+        # Add top 5 fastest keys
+        for i, key in enumerate(fastest_vless_keys, 1):
+            country = get_country_from_key(key)
+            country_emoji = f"🇷🇺" if country == "RU" else f"🌍"
+            message_parts.append(f"{i}. {country_emoji} `{country if country else '??'}`")
+            message_parts.append(f"`{key}`")
+            if i < len(fastest_vless_keys):
+                message_parts.append("")  # Add spacing between keys
+        
+        await update.message.reply_text('\n'.join(message_parts), parse_mode='Markdown')
+    
+    async def random_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /random command - send random fast VLESS keys from all files"""
+        import random
+        
+        ru_keys = self.get_all_keys_from_folder(FOLDER_RU, "ru_white")
+        
+        # Filter only VLESS keys (any country)
+        vless_keys = [k for k in ru_keys if k.startswith('vless://')]
+        
+        if not vless_keys:
+            await update.message.reply_text(
+                "❌ *Случайные VLESS ключи*\n\nК сожалению, в данный момент нет доступных VLESS ключей. "
+                "Попробуйте позже или проверьте наш канал.",
+                parse_mode='Markdown'
+            )
+            return
+        
+        # Take top 1000 fastest VLESS keys and select 5 random ones
+        fastest_vless_keys = vless_keys[:1000]  # Take first 1000 for better variety
+        random_keys = random.sample(fastest_vless_keys, min(5, len(fastest_vless_keys)))
+        
+        # Get last update time
+        last_update = get_last_update_time(FOLDER_RU, "ru_white")
+        
+        # Create message
+        message_parts = [
+            "🎲 *Случайные быстрые VLESS ключи*",
+            f"🔧 *Протокол:* VLESS",
+            f"📅 *Обновлено:* {last_update}",
+            f"📺 *Канал:* {CHANNEL_NAME}",
+            "",
+            "🔑 *Ключи:*"
+        ]
+        
+        # Add random keys with country info
         for i, key in enumerate(random_keys, 1):
+            country = get_country_from_key(key)
+            country_emoji = f"🇷🇺" if country == "RU" else f"🌍"
+            message_parts.append(f"{i}. {country_emoji} `{country if country else '??'}`")
             message_parts.append(f"`{key}`")
             if i < len(random_keys):
                 message_parts.append("")  # Add spacing between keys
@@ -413,6 +447,46 @@ class VPNBot:
             )
             logger.error(f"❌ Критическая ошибка: {e}")
     
+    async def youtube_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /youtube command - send VLESS keys for YouTube unblocking in Russia"""
+        ru_keys = self.get_all_keys_from_folder(FOLDER_RU, "ru_white")
+        
+        # Filter only VLESS keys from Russia (for YouTube unblocking)
+        vless_ru_keys = [k for k in ru_keys if k.startswith('vless://') and get_country_from_key(k) == 'RU']
+        
+        if not vless_ru_keys:
+            await update.message.reply_text(
+                "❌ *VLESS ключи для разблокировки YouTube*\n\nК сожалению, в данный момент нет доступных VLESS ключей из России. "
+                "Попробуйте позже или проверьте наш канал.",
+                parse_mode='Markdown'
+            )
+            return
+        
+        # Take top 10 fastest Russian VLESS keys for YouTube
+        fastest_ru_vless_keys = vless_ru_keys[:10]
+        
+        # Get last update time
+        last_update = get_last_update_time(FOLDER_RU, "ru_white")
+        
+        # Create message
+        message_parts = [
+            "🎬 *VLESS ключи для разблокировки YouTube в России*",
+            f"🔧 *Протокол:* VLESS",
+            f"🌍 *Страна:* 🇷🇺 Россия",
+            f"📅 *Обновлено:* {last_update}",
+            f"📺 *Канал:* {CHANNEL_NAME}",
+            "",
+            "🔑 *Топ-10 VLESS ключей России:*"
+        ]
+        
+        # Add Russian VLESS keys
+        for i, key in enumerate(fastest_ru_vless_keys, 1):
+            message_parts.append(f"`{key}`")
+            if i < len(fastest_ru_vless_keys):
+                message_parts.append("")  # Add spacing between keys
+        
+        await update.message.reply_text('\n'.join(message_parts), parse_mode='Markdown')
+    
     async def status_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /status command"""
         ru_keys = self.get_all_keys_from_folder(FOLDER_RU, "ru_white")
@@ -476,8 +550,9 @@ class VPNBot:
         print("  /ru - Ключи для России")
         print("  /all - Все ключи")
         print("  /vless - Только VLESS ключи России")
-        print("  /fast - Самый быстрый VLESS ключ России")
-        print("  /random - 5 случайных VLESS ключей России")
+        print("  /fast - Топ-5 самых быстрых VLESS ключей России")
+        print("  /random - 5 случайных VLESS ключей России (из топ-1000)")
+        print("  /youtube - VLESS для разблокировки YouTube в России")
         print("  /update - 🔄 Обновить ключи")
         print("  /status - Статус ключей")
         print(f"📺 Канал: {CHANNEL_NAME}")
