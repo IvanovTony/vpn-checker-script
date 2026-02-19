@@ -69,12 +69,10 @@ node_modules/
 .coverage
 htmlcov/
 
-# Файлы с ключами (если не хотим коммитить)
-checked/keys/
-checked/*.txt
+# Файлы с ключами (игнорируем содержимое, но сохраняем структуру)
+checked/**/*.txt
 checked/history.json
 checked/subscriptions_list.txt
 
-# Но оставляем структуру папок
-!checked/
-!checked/.gitkeep
+# Но сохраняем .gitkeep для структуры папок
+!checked/**/.gitkeep

@@ -1,6 +1,5 @@
 import os
 import re
-import html
 import socket
 import ssl
 import time
@@ -46,14 +45,12 @@ URLS_RU = [
     "https://s3c3.001.gpucloud.ru/vahe4xkwi/cjdr"
 ]
 
-# Ссылка на твою папку NEW
+# Ссылки на ваши дополнительные источники ключей (Europe/Other)
+# ВАЖНО: Не добавляйте сюда ссылки на выходные файлы этого же проекта - это создаст цикл!
+# Добавьте внешние источники с Europe ключами
 URLS_MY = [
-    "https://raw.githubusercontent.com/IvanovTony/vpn-checker-script/main/checked/My_Euro/my_euro_part1.txt",
-    "https://raw.githubusercontent.com/IvanovTony/vpn-checker-script/main/checked/My_Euro/my_euro_part2.txt",
-    "https://raw.githubusercontent.com/IvanovTony/vpn-checker-script/main/checked/My_Euro/my_euro_part3.txt",
-    "https://raw.githubusercontent.com/IvanovTony/vpn-checker-script/main/checked/RU_Best/ru_white_part1.txt",
-    "https://raw.githubusercontent.com/IvanovTony/vpn-checker-script/main/checked/RU_Best/ru_white_part2.txt",
-    "https://raw.githubusercontent.com/IvanovTony/vpn-checker-script/main/checked/RU_Best/ru_white_part3.txt"
+    # Пример внешнего источника:
+    # "https://raw.githubusercontent.com/user/repo/main/euro_keys.txt",
 ]
 
 EURO_CODES = {"NL", "DE", "FI", "GB", "FR", "SE", "PL", "CZ", "AT", "CH", "IT", "ES", "NO", "DK", "BE", "IE", "LU", "EE", "LV", "LT"}

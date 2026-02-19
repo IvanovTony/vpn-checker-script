@@ -57,8 +57,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Auto-update checked keys $(date '+%Y-%m-%d %H:%M:%S')"
-          file_pattern: "checked/*"
-          push_options: --force
+          file_pattern: "checked/**"
 
       - name: Summary
         run: |

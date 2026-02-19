@@ -1,8 +1,8 @@
 import os
 import asyncio
 import logging
-import random
 import io
+import random
 from datetime import datetime, timedelta
 from telegram import Update, Bot
 from telegram.ext import Application, CommandHandler, ContextTypes
@@ -23,8 +23,6 @@ BASE_DIR = "checked"
 FOLDER_RU = os.path.join(BASE_DIR, "RU_Best")
 FOLDER_EURO = os.path.join(BASE_DIR, "My_Euro")
 CHANNEL_NAME = "@vpnCheckerScript"
-
-EURO_CODES = {"NL", "DE", "FI", "GB", "FR", "SE", "PL", "CZ", "AT", "CH", "IT", "ES", "NO", "DK", "BE", "IE", "LU", "EE", "LV", "LT"}
 
 def get_country_from_key(key: str) -> str:
     """Извлечь код страны из ключа (из тега в конце)"""
@@ -326,8 +324,6 @@ class VPNBot:
     
     async def random_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /random command - send random fast VLESS keys from all files"""
-        import random
-        
         ru_keys = self.get_all_keys_from_folder(FOLDER_RU, "ru_white")
         
         # Filter only VLESS keys (any country)
