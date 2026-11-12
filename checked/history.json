@@ -7,9 +7,9 @@
   },
   "vless://ca52e2b6-fb9f-4dac-b6dc-49da9923f251@209.200.246.148:443?encryption=none&flow=xtls-rprx-vision&pbk=uTmb-ytXsx8p0fkBz7A76SHpWk7_oVutIA4LGTE8BQk&security=reality&sid=f98843107912e782&sni=www.cloudflare.com&type=raw": {
     "alive": true,
-    "latency": 195,
-    "time": 1794436475.6749303,
-    "country": "ES"
+    "latency": 1674,
+    "time": 1794501384.5143685,
+    "country": "IT"
   },
   "vless://ca52e2b6-fb9f-4dac-b6dc-49da9923f251@209.200.246.148:443?encryption=none&flow=xtls-rprx-vision&fp=chrome&pbk=uTmb-ytXsx8p0fkBz7A76SHpWk7_oVutIA4LGTE8BQk&security=reality&sid=f98843107912e782&sni=www.cloudflare.com&type=raw": {
     "alive": true,
@@ -103,9 +103,9 @@
   },
   "vless://9f61cdf4-810d-4052-bbc7-2da0c8e20104@83.147.18.3:443?encryption=none&flow=xtls-rprx-vision&fp=chrome&pbk=3iVJAIGPx6JMlhlRmfpGrHkSmLpHJ4CPvBBH7KsFrFA&security=reality&sid=fd8cf7e1173f0edb&sni=www.cloudflare.com&type=raw": {
     "alive": true,
-    "latency": 1602,
-    "time": 1794412405.611017,
-    "country": "CH"
+    "latency": 2470,
+    "time": 1794501384.5143685,
+    "country": "IT"
   },
   "vless://9f61cdf4-810d-4052-bbc7-2da0c8e20104@83.147.18.3:443?encryption=none&flow=xtls-rprx-vision&pbk=3iVJAIGPx6JMlhlRmfpGrHkSmLpHJ4CPvBBH7KsFrFA&security=reality&sid=fd8cf7e1173f0edb&sni=www.cloudflare.com&type=raw": {
     "alive": true,
@@ -115,9 +115,9 @@
   },
   "vless://8f704ed6-9a1a-4d04-94dd-1bff501716de@85.90.197.220:443?encryption=none&flow=xtls-rprx-vision&fp=chrome&pbk=biNcdU5mywtNw-KyPpLHindBxdEyAolT1WJ26N0b7y4&security=reality&sid=94acb54627612d43&sni=www.cloudflare.com&type=raw": {
     "alive": true,
-    "latency": 2407,
-    "time": 1794436475.6749303,
-    "country": "ES"
+    "latency": 6872,
+    "time": 1794501384.5143685,
+    "country": "DE"
   },
   "vless://8f704ed6-9a1a-4d04-94dd-1bff501716de@85.90.197.220:443?encryption=none&flow=xtls-rprx-vision&fp=firefox&pbk=biNcdU5mywtNw-KyPpLHindBxdEyAolT1WJ26N0b7y4&security=reality&sid=94acb54627612d43&sni=www.cloudflare.com&type=raw": {
     "alive": true,
@@ -319,9 +319,9 @@
   },
   "vless://d7d724b5-17ce-4f3c-877d-dfbf0f07afa1@150.251.113.34:443?encryption=none&flow=xtls-rprx-vision&pbk=8yMLSTbkpJFfbgTjNzotzz7U8OT6AERrclgKdKrXXW8&security=reality&sid=150a627d15154cf2&sni=www.cloudflare.com&type=raw": {
     "alive": true,
-    "latency": 395,
-    "time": 1794436475.6749303,
-    "country": "ES"
+    "latency": 5211,
+    "time": 1794501384.5143685,
+    "country": "IT"
   },
   "vless://40c8a202-4b7f-45a6-b0aa-37db0fac4df8@188.72.103.4:443?encryption=none&extra=%7B%22host%22%3A%22%22%2C%22path%22%3A%22%22%2C%22mode%22%3A%22%22%2C%22headers%22%3Anull%2C%22xPaddingBytes%22%3A%22100-1000%22%2C%22xPaddingObfsMode%22%3Atrue%2C%22xPaddingKey%22%3A%22_dc%22%2C%22xPaddingHeader%22%3A%22X-Cache%22%2C%22xPaddingPlacement%22%3A%22header%22%2C%22xPaddingMethod%22%3A%22tokenish%22%2C%22uplinkHTTPMethod%22%3A%22GET%22%2C%22sessionIDPlacement%22%3A%22path%22%2C%22sessionIDKey%22%3A%22token%22%2C%22sessionIDTable%22%3A%22Base62%22%2C%22sessionIDLength%22%3A%2216-32%22%2C%22seqPlacement%22%3A%22query%22%2C%22seqKey%22%3A%22page%22%2C%22uplinkDataPlacement%22%3A%22header%22%2C%22uplinkDataKey%22%3A%22X-Request-Id%22%2C%22uplinkChunkSize%22%3A%2220000%22%2C%22noGRPCHeader%22%3Atrue%2C%22noSSEHeader%22%3Atrue%2C%22scMaxEachPostBytes%22%3A%2220000%22%2C%22scMinPostsIntervalMs%22%3A%225%22%2C%22scMaxBufferedPosts%22%3A64%2C%22scStreamUpServerSecs%22%3A%2260%22%2C%22serverMaxHeaderBytes%22%3A0%2C%22xmux%22%3A%7B%22maxConcurrency%22%3A%2216-32%22%2C%22maxConnections%22%3A%220%22%2C%22cMaxReuseTimes%22%3A%220%22%2C%22hMaxRequestTimes%22%3A%22600-900%22%2C%22hMaxReusableSecs%22%3A%22600-900%22%2C%22hKeepAlivePeriod%22%3A0%7D%2C%22downloadSettings%22%3Anull%2C%22extra%22%3Anull%7D&host=cdn-ya.shamanapp.online&mode=packet-up&path=%2Fmedia%2Fhls%2F720p%2F&security=tls&sni=cdn-ya.shamanapp.online&type=xhttp": {
     "alive": true,
@@ -601,9 +601,9 @@
   },
   "vless://ce18d0eb-5c71-41f9-96e5-1632e22456e4@195.123.240.65:443?encryption=none&flow=xtls-rprx-vision&fp=ios&pbk=StPbcmBuzpuYUfa4oZ5SI3Bq1OSF_-oU1vp2AcyvQVE&security=reality&sid=19296c9f1bf9c7b1&sni=www.cloudflare.com&type=raw": {
     "alive": true,
-    "latency": 142,
-    "time": 1794412405.611017,
-    "country": "ES"
+    "latency": 773,
+    "time": 1794501384.5143685,
+    "country": "IT"
   },
   "vless://1b4b11d5-4c2d-4533-9a55-636757cdee94@195.211.98.43:443?encryption=none&flow=xtls-rprx-vision&fp=random&pbk=xPnpkXu5qfwIArlHKvJsqKJnGdGbJK1tT2GzWMyLohA&security=reality&sid=9c56fddf237e8eaf&sni=www.cloudflare.com&type=raw": {
     "alive": true,
@@ -667,9 +667,9 @@
   },
   "vless://4cabcd59-a405-4c00-96f5-03507e1e28fa@188.225.73.41:443?encryption=none&fp=firefox&mode=gun&security=tls&serviceName=cache.sync.v1&sni=cadrin.wtf&type=grpc": {
     "alive": true,
-    "latency": 402,
-    "time": 1794436475.6749303,
-    "country": "ES"
+    "latency": 4192,
+    "time": 1794501384.5143685,
+    "country": "DE"
   },
   "vless://d933fd4d-a335-4868-9dea-d64d9da1d5d3@188.225.25.35:8443?encryption=none&fp=firefox&mode=gun&pbk=rJ-fFNYXh7WW9LuYe1N71fh7nAEe5i09Pi5ZDSDlH1s&security=reality&serviceName=ozone&sid=4951a2313524dd8f&sni=ru.starkclaude.top&type=grpc": {
     "alive": true,
